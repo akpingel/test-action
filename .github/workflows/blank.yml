@@ -1,0 +1,66 @@
+name: Test Callable Workflow
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'The environment that called this workflow'
+        required: true
+
+jobs:
+  always-fail:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail
+        run: exit 1
+
+  test-job:
+    needs: always-fail
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test Step
+        run: echo "My environment is ${{ github.event.inputs.environment }}"
+
+  check-for-failure:
+    needs: [always-fail, test-job]
+    runs-on: ubuntu-latest
+    if: always() && (needs.always-fail.result == 'failure' || needs.always-fail.result == null || needs.test-job.result == 'failure' || needs.test-job.result == null)
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Find Failure
+      id: failed-job
+      run: |
+        echo "Finding failed job"
+        for job in ${{ toJson(needs) }}; do
+          if [[ $(echo $job | jq -r '.result') == 'failure' ]]; then
+            echo "::set-output name=failed-job::${job}"
+            break
+          fi
+        done
+
+    - name: Fetch CODEOWNERS
+      id: codeowners
+      run: |
+        CODEOWNERS=$(awk '!/CODEOWNERS/ {print $2}' .github/CODEOWNERS)
+        echo "::set-output name=owners::$CODEOWNERS"
+
+    - name: Create issue on failure
+      uses: actions/github-script@v5
+      if: steps.failed-job.outputs.failed-job != null
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const owners = "${{ steps.codeowners.outputs.owners }}".split(' ');
+          const runId = context.runId;
+          const issueBody = `Main Pipeline scheduled run failed. Notifying ${owners.join(', ')}. See [workflow run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}) for details.`;
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: 'Main Pipeline Scheduled Run Failed',
+            body: issueBody
+          });
