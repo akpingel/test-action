@@ -55,11 +55,14 @@ jobs:
         CODEOWNERS=$(awk '!/CODEOWNERS/ {print $2}' ./CODEOWNERS)
         echo "::set-output name=owners::$CODEOWNERS"
 
+    - name: My step
+      run: echo ${{ secrets.MY_SECRET }}
+
     - name: Create issue on failure
       uses: actions/github-script@v5
       if: steps.failed-job.outputs.failed-job != null
       with:
-        github-token: ${{secrets.GITHUB_TOKEN}}
+        github-token: ${{secrets.alyssa_)secret}}
         script: |
           const owners = "${{ steps.codeowners.outputs.owners }}".split(' ');
           const runId = context.runId;
