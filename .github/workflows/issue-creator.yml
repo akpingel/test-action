@@ -52,7 +52,7 @@ jobs:
     - name: Fetch CODEOWNERS
       id: codeowners
       run: |
-        CODEOWNERS=$(awk '!/CODEOWNERS/ {print $2}' .github/CODEOWNERS)
+        CODEOWNERS=$(awk '!/CODEOWNERS/ {print $2}' ./CODEOWNERS)
         echo "::set-output name=owners::$CODEOWNERS"
 
     - name: Create issue on failure
