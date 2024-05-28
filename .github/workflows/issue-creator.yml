@@ -83,5 +83,6 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             title: 'Main Pipeline Scheduled Run Failed',
-            body: issueBody
+            body: issueBody,
+            assignees: owners
           });
