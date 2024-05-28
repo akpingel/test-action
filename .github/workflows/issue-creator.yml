@@ -7,6 +7,16 @@ on:
         required: true
 
 jobs:
+  test-job2:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test Step
+        run: echo "My environment is ${{ github.event.inputs.environment }}"
+  
   always-fail:
     runs-on: ubuntu-latest
     steps:
@@ -25,9 +35,9 @@ jobs:
         run: echo "My environment is ${{ github.event.inputs.environment }}"
 
   check-for-failure:
-    needs: [always-fail, test-job]
+    needs: [always-fail, test-job, test-job2]
     runs-on: ubuntu-latest
-    if: always() && (needs.always-fail.result == 'failure' || needs.always-fail.result == null || needs.test-job.result == 'failure' || needs.test-job.result == null)
+    if: always() && (needs.always-fail.result == 'failure' || needs.always-fail.result == null || needs.test-job.result == 'failure' || needs.test-job.result == null || needs.test-job2.result == 'failure' || needs.test-job2.result == null)
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -45,6 +55,8 @@ jobs:
         if [[ '${{ needs.always-fail.result }}' == 'failure' ]]; then
           echo "::set-output name=failed-job::always-fail"
         elif [[ '${{ needs.test-job.result }}' == 'failure' ]]; then
+          echo "::set-output name=failed-job::test-job"
+        elif [[ '${{ needs.test-job2.result }}' == 'failure' ]]; then
           echo "::set-output name=failed-job::test-job"
         fi
       shell: bash
