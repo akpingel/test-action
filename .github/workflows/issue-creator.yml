@@ -35,6 +35,9 @@ jobs:
     - name: Install jq
       run: sudo apt-get install -y jq
 
+    - name: Print needs
+      run: echo "${{ toJson(needs) }}"
+
     - name: Find Failure
       id: failed-job
       run: |
