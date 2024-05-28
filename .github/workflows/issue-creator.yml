@@ -62,7 +62,7 @@ jobs:
       uses: actions/github-script@v5
       if: steps.failed-job.outputs.failed-job != null
       with:
-        github-token: ${{secrets.alyssa_)secret}}
+        github-token: ${{secrets.alyssa_secret}}
         script: |
           const owners = "${{ steps.codeowners.outputs.owners }}".split(' ');
           const runId = context.runId;
