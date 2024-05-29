@@ -97,6 +97,18 @@ jobs:
     # - name: My step
     #   if: steps.failed-job.outputs.failed-job != ''
     #   run: echo ${{ secrets.MY_SECRET }}
+    - name: Check for failure
+      id: check-failure
+      run: |
+          JOB_LIST=$(cat job-list.txt)
+          FAILED_JOBS=""
+          for job in $JOB_LIST; do
+              if [ -f "job-$job.txt" ]; then
+                  echo "Job $job failed"
+                  FAILED_JOBS="$FAILED_JOBS $job"
+              fi
+          done
+          echo "::set-output name=failed-jobs::$FAILED_JOBS"
 
     - name: Create issue on failure
       uses: actions/github-script@v5
@@ -104,7 +116,7 @@ jobs:
         github-token: ${{secrets.alyssa_secret}}
         script: |
           const runId = context.runId;
-          const failedJobs = "${{ needs.generate-job-list.outputs.job-list }}".split(' ');
+          const failedJobs = "${{ steps.check-failure.outputs.failed-jobs }}".split(' ');
 
           const issueBody = `Main Pipeline scheduled run failed ${failedJobs}. See [workflow run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}) for details.`;
           github.rest.issues.create({
