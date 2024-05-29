@@ -84,15 +84,15 @@ jobs:
     #       fi
     #     done
           
-    - name: Print failed-job
-      run: echo "${{ steps.failed-job.outputs.failed-job }}"
+    # - name: Print failed-job
+    #   run: echo "${{ steps.failed-job.outputs.failed-job }}"
 
-    - name: Fetch CODEOWNERS
-      if: steps.failed-job.outputs.failed-job != ''
-      id: codeowners
-      run: |
-        CODEOWNERS=$(awk '!/CODEOWNERS/ {print $2}' ./CODEOWNERS)
-        echo "::set-output name=owners::$CODEOWNERS"
+    # - name: Fetch CODEOWNERS
+    #   if: steps.failed-job.outputs.failed-job != ''
+    #   id: codeowners
+    #   run: |
+    #     CODEOWNERS=$(awk '!/CODEOWNERS/ {print $2}' ./CODEOWNERS)
+    #     echo "::set-output name=owners::$CODEOWNERS"
 
     # - name: My step
     #   if: steps.failed-job.outputs.failed-job != ''
@@ -100,7 +100,6 @@ jobs:
 
     - name: Create issue on failure
       uses: actions/github-script@v5
-      if: steps.failed-job.outputs.failed-job != null
       with:
         github-token: ${{secrets.alyssa_secret}}
         script: |
