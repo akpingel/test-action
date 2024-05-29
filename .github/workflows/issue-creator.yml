@@ -103,7 +103,7 @@ jobs:
           JOB_LIST=$(cat job-list.txt)
           FAILED_JOBS=""
           for job in $JOB_LIST; do
-              if [ -f "job-$job.txt" ]; then
+              if [ -f "job-$job-list.txt" ]; then
                   echo "Job $job failed"
                   FAILED_JOBS="$FAILED_JOBS $job"
               fi
