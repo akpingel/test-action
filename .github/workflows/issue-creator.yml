@@ -126,7 +126,7 @@ jobs:
                 FAILED_JOBS="$FAILED_JOBS $job"
             fi
         done
-        echo "failed-jobs=$FAILED_JOBS" >> $GITHUB_OUTPUT
+        echo "failed-jobs=${FAILED_JOBS# }" >> $GITHUB_OUTPUT
 
     - name: Print failed-job
       run: echo "${{ steps.check-failure.outputs.failed-jobs }}"
