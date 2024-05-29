@@ -143,14 +143,20 @@ jobs:
     #       result=$(echo $word | jq -r --arg job $job '.[$job].result')
     #       echo "Result of $job: $result"
     #     done
-    - name: Extract results
+    - name: Find failure
       uses: actions/github-script@v5
       with:
         script: |
           const needs = ${{ toJson(needs) }};
+          let failedJob = '';
           for (const job in needs) {
-            console.log(`Result of ${job}: ${needs[job].result}`);
+            if (needs[job].result === 'failure') {
+              failedJob = job;
+              break;
+            }
           }
+          console.log(`Failed job: ${failedJob}`);
+          return failedJob
         
         
     - name: Create issue on failure
@@ -158,10 +164,20 @@ jobs:
       with:
         github-token: ${{secrets.alyssa_secret}}
         script: |
-          const runId = context.runId;
-          const failedJobs = "${{ steps.failed-job.outputs.failed-jobs }}".split(' ');
 
-          const issueBody = `Main Pipeline scheduled run failed ${failedJobs}. See [workflow run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}) for details.`;
+          # find failed job
+          const needs = ${{ toJson(needs) }};
+          let failedJob = '';
+          for (const job in needs) {
+            if (needs[job].result === 'failure') {
+              failedJob = job;
+              break;
+            }
+          }
+          console.log(`Failed job: ${failedJob}`);
+          
+          const runId = context.runId;
+          const issueBody = `Main Pipeline scheduled run failed ${failedJob}. See [workflow run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}) for details.`;
           github.rest.issues.create({
             owner: context.repo.owner,
             repo: context.repo.repo,
