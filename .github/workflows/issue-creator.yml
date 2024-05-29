@@ -135,8 +135,7 @@ jobs:
       id: failed-job
       run: |
         echo "Finding failed job"
-        word=(${{ toJson(needs) }})
-        index=0
+        word=${{ toJson(needs) }}
         jobs=$(echo $word | jq -r 'keys[]')
 
         for job in $jobs
