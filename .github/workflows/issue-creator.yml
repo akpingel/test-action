@@ -43,29 +43,29 @@ jobs:
     # - name: Print needs
     #   run: echo "${{ toJson(needs) }}"
 
-    # - name: Find Failure
-    #   id: failed-job
-    #   run: |
-    #     echo "Finding failed job"
-    #     if [[ '${{ needs.always-fail.result }}' == 'failure' ]]; then
-    #       echo "::set-output name=failed-job::always-fail"
-    #     elif [[ '${{ needs.test-job.result }}' == 'failure' ]]; then
-    #       echo "::set-output name=failed-job::test-job"
-    #     elif [[ '${{ needs.test-job2.result }}' == 'failure' ]]; then
-    #       echo "::set-output name=failed-job::test-job"
-    #     fi
-    #   shell: bash
-    
     - name: Find Failure
       id: failed-job
       run: |
         echo "Finding failed job"
-        for job in always-fail, test-job, test-job2; do
-          if [[ ${{ needs[job].result }} == 'failure' ]]; then
-            echo "::set-output name=failed-job::$job"
-            break
-          fi
-        done
+        if [[ '${{ needs.always-fail.result }}' == 'failure' ]]; then
+          echo "::set-output name=failed-job::always-fail"
+        elif [[ '${{ needs.test-job.result }}' == 'failure' ]]; then
+          echo "::set-output name=failed-job::test-job"
+        elif [[ '${{ needs.test-job2.result }}' == 'failure' ]]; then
+          echo "::set-output name=failed-job::test-job"
+        fi
+      shell: bash
+    
+    # - name: Find Failure
+    #   id: failed-job
+    #   run: |
+    #     echo "Finding failed job"
+    #     for job in always-fail, test-job, test-job2; do
+    #       if [[ ${{ needs[job].result }} == 'failure' ]]; then
+    #         echo "::set-output name=failed-job::$job"
+    #         break
+    #       fi
+    #     done
           
     - name: Print failed-job
       run: echo "${{ steps.failed-job.outputs.failed-job }}"
