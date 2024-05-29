@@ -60,13 +60,15 @@ jobs:
     #       echo "::set-output name=failed-job::test-job"
     #     fi
     #   shell: bash
+    
     - name: Find Failure
       id: failed-job
       run: |
         echo "Finding failed job"
-        for job in ${{ toJson(needs) }}; do
-          if [[ $(echo $job | jq -r '.result') == 'failure' ]]; then
-            echo "::set-output name=failed-job::${job}"
+        IFS=',' read -ra JOB_NAMES <<< "${{ needs.setup.outputs.job-names }}"
+        for job in "${JOB_NAMES[@]}"; do
+          if [[ ${{ needs[job].result }} == 'failure' ]]; then
+            echo "::set-output name=failed-job::$job"
             break
           fi
         done
