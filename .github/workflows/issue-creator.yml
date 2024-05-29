@@ -56,16 +56,16 @@ jobs:
     #     fi
     #   shell: bash
     
-    - name: Get failed job
+    - name: Find Failure
       id: failed-job
       run: |
-          for job in ${{ needs }}; do
-              # if [[ "${{ needs.${job}.result }}" == "failure" ]]; then
-              #     echo "::set-output name=failed-job::$job.name"
-              #     break
-              echo ${job}
-              fi
-          done
+        echo "Finding failed job"
+        for job in always-fail, test-job, test-job2; do
+          if [[ ${{ needs[job].result }} == 'failure' ]]; then
+            echo "::set-output name=failed-job::$job"
+            break
+          fi
+        done
           
     - name: Print failed-job
       run: echo "${{ steps.failed-job.outputs.failed-job }}"
