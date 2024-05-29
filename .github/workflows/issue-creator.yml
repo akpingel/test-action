@@ -29,27 +29,27 @@ jobs:
       - name: Test Step
         run: echo "My environment is ${{ github.event.inputs.environment }}"
 
-  generate-job-list:
-    needs: [test-job2, always-fail, test-job]
-    runs-on: ubuntu-latest
-    if: ${{ always() && contains(needs.*.result, 'failure') }}
-    outputs:
-      job-list: ${{ steps.set-job-list.outputs.job-list }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+  # generate-job-list:
+  #   needs: [test-job2, always-fail, test-job]
+  #   runs-on: ubuntu-latest
+  #   if: ${{ always() && contains(needs.*.result, 'failure') }}
+  #   outputs:
+  #     job-list: ${{ steps.set-job-list.outputs.job-list }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
   
-      - name: Generate job list
-        id: set-job-list
-        run: |
-          JOB_LIST="hello always-fail test-job"
-          # echo "::set-output name=job-list::$JOB_LIST"
-          echo "job-list=$JOB_LIST" >> $GITHUB_OUTPUT
+  #     - name: Generate job list
+  #       id: set-job-list
+  #       run: |
+  #         JOB_LIST="hello always-fail test-job"
+  #         # echo "::set-output name=job-list::$JOB_LIST"
+  #         echo "job-list=$JOB_LIST" >> $GITHUB_OUTPUT
 
   check-for-failure:
     runs-on: ubuntu-latest
-    needs: generate-job-list
-    if: always() # && needs.generate-job-list.outputs.job-list != ''    
+    needs: [test-job2, always-fail, test-job]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
     steps:
     - uses: actions/checkout@v2
 
@@ -112,24 +112,35 @@ jobs:
     #   id: job-list
     #   run: echo "::set-output name=job-list::hello always-fail test-job"
       
-    - name: Check for failure
-      id: check-failure
-      run: |
-        JOB_LIST="${{ needs.generate-job-list.outputs.job-list }}"
-        FAILED_JOBS=""
-        for job in $JOB_LIST; do
-            JOB_STATUS=$(curl -H "Accept: application/vnd.github.v3+json" \
-              "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" | jq -r '.jobs[] | select(.name=="'"$job"'") | .conclusion')
-            if [ "$JOB_STATUS" == "failure" ]; then
-                echo "Job $job failed"
-                FAILED_JOBS="$FAILED_JOBS $job"
-            fi
-        done
-        echo "failed-jobs=${FAILED_JOBS# }" >> $GITHUB_OUTPUT
+    # - name: Check for failure
+    #   id: check-failure
+    #   run: |
+    #     JOB_LIST="${{ needs.generate-job-list.outputs.job-list }}"
+    #     FAILED_JOBS=""
+    #     for job in $JOB_LIST; do
+    #         JOB_STATUS=$(curl -H "Accept: application/vnd.github.v3+json" \
+    #           "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" \
+    #           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" | jq -r '.jobs[] | select(.name=="'"$job"'") | .conclusion')
+    #         if [ "$JOB_STATUS" == "failure" ]; then
+    #             echo "Job $job failed"
+    #             FAILED_JOBS="$FAILED_JOBS $job"
+    #         fi
+    #     done
+    #     echo "failed-jobs=${FAILED_JOBS# }" >> $GITHUB_OUTPUT
 
-    - name: Print failed-job
-      run: echo "${{ steps.check-failure.outputs.failed-jobs }}"
+    # - name: Print failed-job
+    #   run: echo "${{ steps.check-failure.outputs.failed-jobs }}"
+
+    - name: Find Failure
+      id: failed-job
+      run: |
+        echo "Finding failed job"
+        for job in ${{ toJson(needs) }}; do
+          if [[ $(echo $job | jq -r '.result') == 'failure' ]]; then
+            echo "::set-output name=failed-job::${job}"
+            break
+          fi
+        done
         
     - name: Create issue on failure
       uses: actions/github-script@v5
@@ -137,7 +148,7 @@ jobs:
         github-token: ${{secrets.alyssa_secret}}
         script: |
           const runId = context.runId;
-          const failedJobs = "${{ steps.check-failure.outputs.failed-jobs }}".split(' ');
+          const failedJobs = "${{ steps.failed-job.outputs.failed-jobs }}".split(' ');
 
           const issueBody = `Main Pipeline scheduled run failed ${failedJobs}. See [workflow run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}) for details.`;
           github.rest.issues.create({
