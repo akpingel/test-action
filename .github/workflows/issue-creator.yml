@@ -33,7 +33,7 @@ jobs:
   check-for-failure:
     needs: [always-fail, test-job, test-job2]
     runs-on: ubuntu-latest
-    if: always() && (needs.always-fail.result == 'failure' || needs.always-fail.result == null || needs.test-job.result == 'failure' || needs.test-job.result == null || needs.test-job2.result == 'failure' || needs.test-job2.result == null)
+    # if: always() && (needs.always-fail.result == 'failure' || needs.always-fail.result == null || needs.test-job.result == 'failure' || needs.test-job.result == null || needs.test-job2.result == 'failure' || needs.test-job2.result == null)
     steps:
     - name: Checkout
       uses: actions/checkout@v2
