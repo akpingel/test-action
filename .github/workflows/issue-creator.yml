@@ -72,7 +72,7 @@ jobs:
           done
           
     - name: Print failed-job
-      run: echo "${{ failed-job }}"
+      run: echo "${{ steps.failed-job.outputs.failed-job }}"
 
     - name: Fetch CODEOWNERS
       id: codeowners
