@@ -61,17 +61,15 @@ jobs:
     #     fi
     #   shell: bash
     
-    - name: Find Failure
+    - name: Get failed job
       id: failed-job
       run: |
-        echo "Finding failed job"
-        IFS=',' read -ra JOB_NAMES <<< "${{ needs.setup.outputs.job-names }}"
-        for job in "${JOB_NAMES[@]}"; do
-          if [[ ${{ needs[job].result }} == 'failure' ]]; then
-            echo "::set-output name=failed-job::$job"
-            break
-          fi
-        done
+          for job in ${{ needs.* }}; do
+              if [ ${{ job.result }} == 'failure' ]; then
+                  echo "::set-output name=failed-job::$job.name"
+                  break
+              fi
+          done
 
     - name: Fetch CODEOWNERS
       id: codeowners
