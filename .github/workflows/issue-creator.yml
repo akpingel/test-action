@@ -135,12 +135,19 @@ jobs:
       id: failed-job
       run: |
         echo "Finding failed job"
-        for job in ${{ toJson(needs) }}; do
-          if [[ $(echo $job | jq -r '[result]') == 'failure' ]]; then
+        count=${#needs[@]}
+        word=(${{ toJson(needs) }})
+        index=0
+        while [ $index -lt $count ]
+        do
+          job=${word[$index].result}
+          if [[ $(echo $job == 'failure' ]]; then
             echo "::set-output name=failed-job::${job}"
             break
           fi
+          index=$((index+1))
         done
+        
         
     - name: Create issue on failure
       uses: actions/github-script@v5
