@@ -165,7 +165,7 @@ jobs:
         github-token: ${{secrets.alyssa_secret}}
         script: |
 
-          # find failed job
+          // find failed job
           const needs = ${{ toJson(needs) }};
           let failedJob = '';
           for (const job in needs) {
