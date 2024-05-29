@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Test Step
-        run: echo "Hello"
+        run: exit 1
   
   always-fail:
     runs-on: ubuntu-latest
