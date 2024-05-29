@@ -42,24 +42,34 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Install jq
-      run: sudo apt-get install -y jq
+    # - name: Install jq
+    #   run: sudo apt-get install -y jq
 
-    - name: Print needs
-      run: echo "${{ toJson(needs) }}"
+    # - name: Print needs
+    #   run: echo "${{ toJson(needs) }}"
 
+    # - name: Find Failure
+    #   id: failed-job
+    #   run: |
+    #     echo "Finding failed job"
+    #     if [[ '${{ needs.always-fail.result }}' == 'failure' ]]; then
+    #       echo "::set-output name=failed-job::always-fail"
+    #     elif [[ '${{ needs.test-job.result }}' == 'failure' ]]; then
+    #       echo "::set-output name=failed-job::test-job"
+    #     elif [[ '${{ needs.test-job2.result }}' == 'failure' ]]; then
+    #       echo "::set-output name=failed-job::test-job"
+    #     fi
+    #   shell: bash
     - name: Find Failure
       id: failed-job
       run: |
         echo "Finding failed job"
-        if [[ '${{ needs.always-fail.result }}' == 'failure' ]]; then
-          echo "::set-output name=failed-job::always-fail"
-        elif [[ '${{ needs.test-job.result }}' == 'failure' ]]; then
-          echo "::set-output name=failed-job::test-job"
-        elif [[ '${{ needs.test-job2.result }}' == 'failure' ]]; then
-          echo "::set-output name=failed-job::test-job"
-        fi
-      shell: bash
+        for job in ${{ toJson(needs) }}; do
+          if [[ $(echo $job | jq -r '.result') == 'failure' ]]; then
+            echo "::set-output name=failed-job::${job}"
+            break
+          fi
+        done
 
     - name: Fetch CODEOWNERS
       id: codeowners
