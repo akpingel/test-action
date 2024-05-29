@@ -127,6 +127,9 @@ jobs:
             fi
         done
         echo "failed-jobs=$FAILED_JOBS" >> $GITHUB_OUTPUT
+
+    - name: Print failed-job
+      run: echo "${{ steps.check-failure.outputs.failed-jobs }}"
         
     - name: Create issue on failure
       uses: actions/github-script@v5
