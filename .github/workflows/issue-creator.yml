@@ -49,7 +49,7 @@ jobs:
   check-for-failure:
     runs-on: ubuntu-latest
     needs: generate-job-list
-    # if: always() && needs.generate-job-list.outputs.job-list != ''    
+    if: always() # && needs.generate-job-list.outputs.job-list != ''    
     steps:
     - uses: actions/checkout@v2
 
