@@ -30,10 +30,25 @@ jobs:
       - name: Test Step
         run: echo "My environment is ${{ github.event.inputs.environment }}"
 
-  check-for-failure:
-    needs: [always-fail, test-job, test-job2]
+  generate-job-list:
     runs-on: ubuntu-latest
-    # if: always() && (needs.always-fail.result == 'failure' || needs.always-fail.result == null || needs.test-job.result == 'failure' || needs.test-job.result == null || needs.test-job2.result == 'failure' || needs.test-job2.result == null)
+    outputs:
+      job-list: ${{ steps.set-job-list.outputs.job-list }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Generate job list
+        id: set-job-list
+        run: |
+          JOB_LIST="hello always-fail test-job"
+          echo "::set-output name=job-list::$JOB_LIST"
+          echo $JOB_LIST > job-list.txt
+
+  check-for-failure:
+    needs: [generate-job-list]
+    runs-on: ubuntu-latest
+    if: always() && ${{ needs.generate-job-list.outputs.job-list }} != ""
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -44,18 +59,18 @@ jobs:
     # - name: Print needs
     #   run: echo "${{ toJson(needs) }}"
 
-    - name: Find Failure
-      id: failed-job
-      run: |
-        echo "Finding failed job"
-        if [[ '${{ needs.always-fail.result }}' == 'failure' ]]; then
-          echo "::set-output name=failed-job::always-fail"
-        elif [[ '${{ needs.test-job.result }}' == 'failure' ]]; then
-          echo "::set-output name=failed-job::test-job"
-        elif [[ '${{ needs.test-job2.result }}' == 'failure' ]]; then
-          echo "::set-output name=failed-job::test-job"
-        fi
-      shell: bash
+    # - name: Find Failure
+    #   id: failed-job
+    #   run: |
+    #     echo "Finding failed job"
+    #     if [[ '${{ needs.always-fail.result }}' == 'failure' ]]; then
+    #       echo "::set-output name=failed-job::always-fail"
+    #     elif [[ '${{ needs.test-job.result }}' == 'failure' ]]; then
+    #       echo "::set-output name=failed-job::test-job"
+    #     elif [[ '${{ needs.test-job2.result }}' == 'failure' ]]; then
+    #       echo "::set-output name=failed-job::test-job"
+    #     fi
+    #   shell: bash
     
     # - name: Find Failure
     #   id: failed-job
@@ -88,13 +103,13 @@ jobs:
       with:
         github-token: ${{secrets.alyssa_secret}}
         script: |
-          const owners = "${{ steps.codeowners.outputs.owners }}".split(' ');
           const runId = context.runId;
-          const issueBody = `Main Pipeline scheduled run failed. Notifying ${owners.join(', ')}. See [workflow run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}) for details.`;
+          const failedJobs = "${{ needs.generate-job-list.outputs.job-list }}".split(' ');
+
+          const issueBody = `Main Pipeline scheduled run failed ${failedJobs}. See [workflow run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}) for details.`;
           github.rest.issues.create({
             owner: context.repo.owner,
             repo: context.repo.repo,
             title: 'Main Pipeline Scheduled Run Failed',
             body: issueBody,
-            assignees: ${owners//@/}
           });
