@@ -16,7 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fail
-        run: exit 1
+        run: |
+          echo "hello"
 
   test-job:
     needs: always-fail
@@ -71,13 +72,15 @@ jobs:
       run: echo "${{ steps.failed-job.outputs.failed-job }}"
 
     - name: Fetch CODEOWNERS
+      if: steps.failed-job.outputs.failed-job != ''
       id: codeowners
       run: |
         CODEOWNERS=$(awk '!/CODEOWNERS/ {print $2}' ./CODEOWNERS)
         echo "::set-output name=owners::$CODEOWNERS"
 
-    - name: My step
-      run: echo ${{ secrets.MY_SECRET }}
+    # - name: My step
+    #   if: steps.failed-job.outputs.failed-job != ''
+    #   run: echo ${{ secrets.MY_SECRET }}
 
     - name: Create issue on failure
       uses: actions/github-script@v5
