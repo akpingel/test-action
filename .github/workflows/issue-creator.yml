@@ -135,17 +135,14 @@ jobs:
       id: failed-job
       run: |
         echo "Finding failed job"
-        count=${#needs[@]}
         word=(${{ toJson(needs) }})
         index=0
-        while [ $index -lt $count ]
+        jobs=$(echo $word | jq -r 'keys[]')
+
+        for job in $jobs
         do
-          job=${word[$index]}
-          if [[ $(echo $job | jq -r '.result') == 'failure' ]]; then
-            echo "::set-output name=failed-job::${job}"
-            break
-          fi
-          index=$((index+1))
+          result=$(echo $word | jq -r --arg job $job '.[$job].result')
+          echo "Result of $job: $result"
         done
         
         
