@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fail
-        run: exit 1
+        run: echo "HELLO"
 
   test-job:
     needs: always-fail
