@@ -44,6 +44,8 @@ jobs:
         run: |
           JOB_LIST="hello always-fail test-job"
           echo "::set-output name=job-list::$JOB_LIST"
+          echo "job-list=$JOB_LIST" >> $GITHUB_OUTPUT
+
 
   check-for-failure:
     needs: [generate-job-list]
