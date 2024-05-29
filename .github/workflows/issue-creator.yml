@@ -131,18 +131,26 @@ jobs:
     # - name: Print failed-job
     #   run: echo "${{ steps.check-failure.outputs.failed-jobs }}"
 
-    - name: Find Failure
-      id: failed-job
-      run: |
-        echo "Finding failed job"
-        word=${{ toJson(needs) }}
-        jobs=$(echo $word | jq -r 'keys[]')
+    # - name: Find Failure
+    #   id: failed-job
+    #   run: |
+    #     echo "Finding failed job"
+    #     word=${{ toJson(needs) }}
+    #     jobs=$(echo $word | jq -r 'keys[]')
 
-        for job in $jobs
-        do
-          result=$(echo $word | jq -r --arg job $job '.[$job].result')
-          echo "Result of $job: $result"
-        done
+    #     for job in $jobs
+    #     do
+    #       result=$(echo $word | jq -r --arg job $job '.[$job].result')
+    #       echo "Result of $job: $result"
+    #     done
+    - name: Extract results
+      uses: actions/github-script@v5
+      with:
+        script: |
+          const needs = ${{ toJson(needs) }};
+          for (const job in needs) {
+            console.log(`Result of ${job}: ${needs[job].result}`);
+          }
         
         
     - name: Create issue on failure
