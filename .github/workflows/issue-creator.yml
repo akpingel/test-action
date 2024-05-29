@@ -48,7 +48,7 @@ jobs:
 
 
   check-for-failure:
-    needs: [generate-job-list]
+    needs: generate-job-list
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
