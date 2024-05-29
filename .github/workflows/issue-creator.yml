@@ -46,9 +46,9 @@ jobs:
           echo "::set-output name=job-list::$JOB_LIST"
 
   check-for-failure:
-    needs: [test-job2, always-fail, test-job]
+    needs: [generate-job-list]
     runs-on: ubuntu-latest
-    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    if: always() && needs.generate-job-list.outputs.job-list != ''    
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -107,15 +107,15 @@ jobs:
     #               FAILED_JOBS="$FAILED_JOBS $job"
     #           fi
     #       done
-    #       echo "::set-output name=failed-jobs::$FAILED_JOBS"
-    - name: List of Jobs
-      id: job-list
-      run: echo "::set-output name=job-list::hello always-fail test-job"
+    # #       echo "::set-output name=failed-jobs::$FAILED_JOBS"
+    # - name: List of Jobs
+    #   id: job-list
+    #   run: echo "::set-output name=job-list::hello always-fail test-job"
       
     - name: Check for failure
       id: check-failure
       run: |
-        JOB_LIST="${{ steps.job-list.outputs.job-list }}"
+        JOB_LIST="${{ needs.generate-job-list.outputs.job-list }}"
         FAILED_JOBS=""
         for job in $JOB_LIST; do
             JOB_STATUS=$(curl -H "Accept: application/vnd.github.v3+json" \
