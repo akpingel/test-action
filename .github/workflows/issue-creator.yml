@@ -1,10 +1,5 @@
 name: Test Callable Workflow
-on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'The environment that called this workflow'
-        required: true
+on: push
 
 jobs:
   test-job2:
@@ -21,7 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fail
-        run: exit 1
+        run: |
+           echo "done"
 
   test-job:
     needs: always-fail
@@ -61,15 +57,15 @@ jobs:
     #     fi
     #   shell: bash
     
-    - name: Get failed job
-      id: failed-job
-      run: |
-          for job in ${{ needs.* }}; do
-              if [[ "${{ needs.${job}.result }}" == "failure" ]]; then
-                  echo "::set-output name=failed-job::$job.name"
-                  break
-              fi
-          done
+    # - name: Get failed job
+    #   id: failed-job
+    #   run: |
+    #       for job in ${{ needs.* }}; do
+    #           if [[ "${{ needs.${job}.result }}" == "failure" ]]; then
+    #               echo "::set-output name=failed-job::$job.name"
+    #               break
+    #           fi
+    #       done
           
     - name: Print failed-job
       run: echo "${{ steps.failed-job.outputs.failed-job }}"
