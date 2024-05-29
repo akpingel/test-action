@@ -31,13 +31,15 @@ jobs:
         run: echo "My environment is ${{ github.event.inputs.environment }}"
 
   generate-job-list:
+    needs: [test-job2, always-fail, test-job]
     runs-on: ubuntu-latest
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
     outputs:
       job-list: ${{ steps.set-job-list.outputs.job-list }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
+  
       - name: Generate job list
         id: set-job-list
         run: |
