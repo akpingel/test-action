@@ -44,7 +44,6 @@ jobs:
         run: |
           JOB_LIST="hello always-fail test-job"
           echo "::set-output name=job-list::$JOB_LIST"
-          echo $JOB_LIST > job-list.txt
 
   check-for-failure:
     needs: [generate-job-list]
@@ -97,19 +96,34 @@ jobs:
     # - name: My step
     #   if: steps.failed-job.outputs.failed-job != ''
     #   run: echo ${{ secrets.MY_SECRET }}
+    # - name: Check for failure
+    #   id: check-failure
+    #   run: |
+    #       JOB_LIST=$(cat job-list.txt)
+    #       FAILED_JOBS=""
+    #       for job in $JOB_LIST; do
+    #           if [ -f "job-$job-list.txt" ]; then
+    #               echo "Job $job failed"
+    #               FAILED_JOBS="$FAILED_JOBS $job"
+    #           fi
+    #       done
+    #       echo "::set-output name=failed-jobs::$FAILED_JOBS"
     - name: Check for failure
       id: check-failure
       run: |
-          JOB_LIST=$(cat job-list.txt)
-          FAILED_JOBS=""
-          for job in $JOB_LIST; do
-              if [ -f "job-$job-list.txt" ]; then
-                  echo "Job $job failed"
-                  FAILED_JOBS="$FAILED_JOBS $job"
-              fi
-          done
-          echo "::set-output name=failed-jobs::$FAILED_JOBS"
-
+        JOB_LIST="${{ needs.generate-job-list.outputs.job-list }}"
+        FAILED_JOBS=""
+        for job in $JOB_LIST; do
+            JOB_STATUS=$(curl -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" | jq -r '.jobs[] | select(.name=="'"$job"'") | .conclusion')
+            if [ "$JOB_STATUS" == "failure" ]; then
+                echo "Job $job failed"
+                FAILED_JOBS="$FAILED_JOBS $job"
+            fi
+        done
+        echo "::set-output name=failed-jobs::$FAILED_JOBS"
+        
     - name: Create issue on failure
       uses: actions/github-script@v5
       with:
