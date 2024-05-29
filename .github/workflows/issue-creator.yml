@@ -140,8 +140,8 @@ jobs:
         index=0
         while [ $index -lt $count ]
         do
-          job=${word[$index].result}
-          if [[ $(echo $job == 'failure' ]]; then
+          job=${word[$index]}
+          if [[ $(echo $job | jq -r '.result' == 'failure' ]]; then
             echo "::set-output name=failed-job::${job}"
             break
           fi
