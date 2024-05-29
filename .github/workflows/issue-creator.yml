@@ -50,7 +50,6 @@ jobs:
   check-for-failure:
     needs: [generate-job-list]
     runs-on: ubuntu-latest
-    if: always() && needs.generate-job-list.outputs.job-list != ''    
     steps:
     - name: Checkout
       uses: actions/checkout@v2
