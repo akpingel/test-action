@@ -65,7 +65,7 @@ jobs:
       id: failed-job
       run: |
           for job in ${{ needs.* }}; do
-              if [[ "${{ needs.${dependency}.result }}" == "failure" ]]; then
+              if [[ "${{ needs.${job}.result }}" == "failure" ]]; then
                   echo "::set-output name=failed-job::$job.name"
                   break
               fi
