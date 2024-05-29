@@ -126,7 +126,7 @@ jobs:
                 FAILED_JOBS="$FAILED_JOBS $job"
             fi
         done
-        echo "::set-output name=failed-jobs::$FAILED_JOBS"
+        echo "failed-jobs=$FAILED_JOBS" >> $GITHUB_OUTPUT
         
     - name: Create issue on failure
       uses: actions/github-script@v5
