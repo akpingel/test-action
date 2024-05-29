@@ -50,6 +50,7 @@ jobs:
   check-for-failure:
     runs-on: ubuntu-latest
     needs: generate-job-list
+    if: always()
     steps:
     - uses: actions/checkout@v2
 
