@@ -59,7 +59,7 @@ jobs:
     - name: Get failed job
       id: failed-job
       run: |
-          for job in ${{ needs.* }}; do
+          for job in ${{ needs }}; do
               # if [[ "${{ needs.${job}.result }}" == "failure" ]]; then
               #     echo "::set-output name=failed-job::$job.name"
               #     break
